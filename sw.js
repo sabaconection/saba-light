@@ -1,6 +1,6 @@
 /* Guarda la página para que abra al instante. Los datos (Google) siempre van por la red. */
-const CACHE = "saba-light-v1";
-const FILES = ["./", "index.html", "style.css", "app.js", "parse.js", "manifest.webmanifest", "icon-192.png"];
+const CACHE = "saba-light-v3";
+const FILES = ["./", "index.html", "style.css", "config.js", "app.js", "parse.js", "manifest.webmanifest", "icon-192.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES)));

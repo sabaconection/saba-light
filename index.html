@@ -34,7 +34,7 @@
     <p>Pegá el <b>ID de cliente</b> (tipo «Aplicación web») que creaste en Google Cloud. Termina en <code>.apps.googleusercontent.com</code>. Se guarda solo en este celular.</p>
     <form id="setupForm" autocomplete="off">
       <label for="clientId" class="sr-only">ID de cliente</label>
-      <input id="clientId" type="text" inputmode="url" placeholder="123…apps.googleusercontent.com">
+      <input id="clientId" type="text" inputmode="url" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="123…apps.googleusercontent.com">
       <button type="submit" class="primary">Guardar</button>
     </form>
   </section>
@@ -43,6 +43,8 @@
     <h1>Hola.</h1>
     <p>Entrá con tu cuenta de Google para ver y cargar tus tareas, compras y agenda. Es la misma cuenta que usa Saba en la PC.</p>
     <button type="button" class="primary big" id="signinButton">Entrar con Google</button>
+    <p class="small">ID de cliente: <code id="clientIdShown"></code><br>
+      <button type="button" class="link" id="changeClientButton">Cambiar ID de cliente</button></p>
   </section>
 
   <main id="main" hidden>
@@ -91,6 +93,7 @@
 
   <div class="toast" id="toast" role="status" hidden></div>
 
+  <script src="config.js"></script>
   <script src="parse.js"></script>
   <script src="app.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer onload="window.sabaGoogleReady && window.sabaGoogleReady()"></script>

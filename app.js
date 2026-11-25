@@ -81,6 +81,7 @@
 
   function show(section) {
     ["setup", "signin", "main"].forEach((id) => { $(id).hidden = id !== section; });
+    if (section === "signin") $("clientIdShown").textContent = state.clientId;
   }
 
   // ----------------------------------------------------------------- Google
@@ -97,7 +98,7 @@
       scope: SCOPES,
       callback: (response) => {
         if (response.error) {
-          toast("Google no dio permiso: " + response.error);
+          toast("Google no dio permiso: " + response.error + (response.error_description ? " — " + response.error_description : ""));
           show("signin");
           return;
         }
@@ -512,13 +513,17 @@
   // ------------------------------------------------------------- arranque
 
   function start() {
-    state.clientId = store.get("saba_client_id") || (window.SABA_CLIENT_ID || "");
+    // El ID de config.js manda: así un ID mal tipeado y guardado en el celular no queda pegado.
+    const configured = String(window.SABA_CLIENT_ID || "").replace(/[\s\u200B-\u200D\uFEFF]/g, "");
+    state.clientId = configured || store.get("saba_client_id");
+    if (configured) store.set("saba_client_id", "");
     state.token = store.get("saba_token");
     state.tokenUntil = Number(store.get("saba_token_until") || 0);
 
     $("setupForm").addEventListener("submit", (event) => {
       event.preventDefault();
-      const value = $("clientId").value.trim();
+      // Sin espacios ni caracteres invisibles que a veces se pegan desde otra app.
+      const value = $("clientId").value.replace(/[\s\u200B-\u200D\uFEFF]/g, "");
       if (!value.endsWith(".apps.googleusercontent.com")) {
         toast("Ese no parece un ID de cliente de Google.");
         return;
@@ -530,6 +535,15 @@
     });
 
     $("signinButton").addEventListener("click", signIn);
+    $("changeClientButton").addEventListener("click", () => {
+      store.set("saba_client_id", "");
+      store.set("saba_signed", "");
+      state.clientId = "";
+      state.tokenClient = null;
+      $("clientId").value = "";
+      show("setup");
+      setStatus("Falta configurar");
+    });
     $("signoutButton").addEventListener("click", () => {
       if (state.token && window.google) google.accounts.oauth2.revoke(state.token, () => {});
       state.token = "";

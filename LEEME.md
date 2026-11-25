@@ -28,8 +28,11 @@ Google Tasks API y Google Calendar API ya tienen que estar habilitadas (son las 
 
 ## 3. En el celular
 
+Antes, en GitHub: abrí `config.js` en el repo → ✏️ → pegá el ID de cliente entre las comillas
+de `window.SABA_CLIENT_ID = "";` → **Commit changes**. Así el celular no te lo pide.
+
 1. Abrí `https://sabaconection.github.io/saba-light/` en Chrome (Android) o Safari (iPhone).
-2. Pegá el ID de cliente → **Guardar** → **Entrar con Google**.
+2. **Entrar con Google**. (Si `config.js` quedó vacío, te pide pegar el ID a mano.)
    Si aparece «Google no verificó esta app», tocá **Continuar** (es tu propia app, en modo prueba).
 3. Instalala:
    - Android (Chrome): menú ⋮ → **Agregar a la pantalla principal** / **Instalar app**.
@@ -48,3 +51,9 @@ Google Tasks API y Google Calendar API ya tienen que estar habilitadas (son las 
 
 - Frases libres con razonamiento: para eso, el bot de Telegram (con la PC prendida).
 - Armar el menú: se ve acá, se arma en Saba.
+
+## Si Google dice «401 invalid_client»
+
+Google no encuentra ese ID de cliente. Casi siempre es el ID mal copiado (un `l` por un `1`,
+un `O` por un `0`) o un cliente que se borró. Copialo de nuevo con el botón de copiar en
+Credenciales, pegalo en `config.js` y recargá la página en el celular.
