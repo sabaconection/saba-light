@@ -1,5 +1,5 @@
 /* Guarda la página para que abra al instante. Los datos (Google) siempre van por la red. */
-const CACHE = "saba-light-v3";
+const CACHE = "saba-light-v4";
 const FILES = ["./", "index.html", "style.css", "config.js", "app.js", "parse.js", "manifest.webmanifest", "icon-192.png"];
 
 self.addEventListener("install", (event) => {

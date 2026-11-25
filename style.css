@@ -111,3 +111,4 @@ code { color: var(--text); }
 }
 
 .small { margin-top: 24px; font-size: 13px; color: var(--faint); overflow-wrap: anywhere; }
+.icon.mic.off { opacity: .45; }

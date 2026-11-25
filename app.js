@@ -466,46 +466,99 @@
 
   // ---------------------------------------------------------------- voz
 
+  const VOICE_ERRORS = {
+    "not-allowed": "Saba no tiene permiso para el micrófono. Tocá el candado de la barra de direcciones → Micrófono → Permitir.",
+    "service-not-allowed": "Este navegador no deja dictar acá. En iPhone, abrila en Safari (no instalada) o usá el micrófono del teclado.",
+    "audio-capture": "No encuentro el micrófono (¿lo está usando otra app?).",
+    "network": "El dictado necesita internet y no hay conexión.",
+    "language-not-supported": "El dictado en español no está disponible en este celular.",
+  };
+
   function setupVoice() {
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const button = $("micButton");
 
     if (!Recognition) {
-      button.hidden = true; // queda el micrófono del teclado
+      // Firefox, algunos navegadores de Android y la app instalada en iPhone no traen dictado.
+      button.addEventListener("click", () =>
+        toast("Este navegador no trae dictado. Usá el micrófono del teclado o abrí la página en Chrome."));
+      button.classList.add("off");
       return;
     }
 
-    const recognition = new Recognition();
-    recognition.lang = "es-AR";
-    recognition.interimResults = true;
-    recognition.continuous = true; // permite pausas: corta cuando tocás de nuevo
-    let base = "";
+    const isApple = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    let lang = "es-AR";
+    let finalText = "";   // lo ya confirmado en esta toma
+    let base = "";        // lo que había escrito antes de tocar el micrófono
+    let recognition = null;
+    let heard = false;
 
-    recognition.onresult = (event) => {
-      let text = "";
-      for (let i = 0; i < event.results.length; i += 1) text += event.results[i][0].transcript;
-      $("askInput").value = (base + " " + text).trim();
+    function paint(interim) {
+      $("askInput").value = [base, finalText, interim].map((part) => part.trim()).filter(Boolean).join(" ");
       updatePreview();
-    };
+    }
 
-    recognition.onend = () => {
+    function stopUi() {
       state.listening = false;
       button.setAttribute("aria-pressed", "false");
-    };
+    }
 
-    recognition.onerror = (event) => {
-      if (event.error === "not-allowed") toast("Dale permiso al micrófono en el navegador.");
-    };
+    function begin() {
+      recognition = new Recognition();
+      recognition.lang = lang;
+      recognition.interimResults = true;
+      // Android corta solo tras un silencio y en modo continuo duplica frases: tomamos de a una
+      // frase y volvemos a escuchar hasta que toques de nuevo. Así podés hacer pausas.
+      recognition.continuous = isApple;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event) => {
+        heard = true;
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          const piece = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalText = (finalText + " " + piece).trim();
+          else interim += piece;
+        }
+        paint(interim);
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error === "language-not-supported" && lang !== "es-ES") {
+          lang = "es-ES";            // probamos con el español genérico
+          return;                    // onend vuelve a arrancar
+        }
+        if (event.error === "no-speech" || event.error === "aborted") return;
+        toast(VOICE_ERRORS[event.error] || "El dictado falló (" + event.error + ").");
+        stopUi();
+      };
+
+      recognition.onend = () => {
+        if (state.listening) { begin(); return; }
+        paint("");
+        if (!heard) toast("No te escuché. Probá de nuevo, más cerca del celular.");
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        toast("No pude abrir el micrófono: " + error.message);
+        stopUi();
+      }
+    }
 
     button.addEventListener("click", () => {
       if (state.listening) {
-        recognition.stop();
+        stopUi();
+        if (recognition) recognition.stop();
         return;
       }
       base = $("askInput").value;
+      finalText = "";
+      heard = false;
       state.listening = true;
       button.setAttribute("aria-pressed", "true");
-      try { recognition.start(); } catch (error) { state.listening = false; button.setAttribute("aria-pressed", "false"); }
+      begin();
       toast("Te escucho. Tocá el micrófono para terminar.");
     });
   }
